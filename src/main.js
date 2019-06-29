@@ -6,7 +6,7 @@ import Vuetify from "vuetify";
 import "vuetify/dist/vuetify.min.css";
 import VueMqtt from "vue-mqtt";
 
-Vue.use(VueMqtt, "ws://iot.eclipse.org:80/ws", { wsOptions: {} });
+Vue.use(VueMqtt, "ws://192.168.1.230:1884", {});
 Vue.use(Vuetify);
 
 Vue.config.productionTip = false;
