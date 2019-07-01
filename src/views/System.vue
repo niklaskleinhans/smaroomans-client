@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="system">
     <v-layout>
-      <v-flex md6>
+      <v-flex md5>
         <v-card>
           <v-container fluid grid-list-md>
             <v-layout row wrap>
@@ -21,9 +21,7 @@
       <v-flex md6>
         <v-card v-if="roomInfo.key">
           <v-card-title primary-title>{{roomInfo.key}}</v-card-title>
-          <v-card-text>
-            <div left>maxStaff: {{roomInfo.maxStaff}}</div>
-          </v-card-text>
+          maxStaff: {{roomInfo.maxStaff}}
           <v-data-table
             :headers="headers"
             :items="roomInfo.sensors"
@@ -137,6 +135,7 @@ export default {
         console.log(err);
       });
 
+    var self = this;
     this.$mqtt.on("message", (topic, message) => {
       // var room = topic.split("/")[1];
       // var sensor = topic.split("/")[2];
@@ -146,24 +145,24 @@ export default {
       var messageJson = JSON.parse(message);
       // console.log(messageJson);
       // check if message contains data for current displayed room
-      if (messageJson.room == this.roomInfo.key) {
+      if (messageJson.room == self.roomInfo.key) {
         var dataKey = Object.keys(messageJson.data)[0];
         var obj = { key: dataKey, value: messageJson.data[dataKey] };
         // delete element from array if there is an older version in there
         var alreadyIn = false;
-        for (let element in this.roomInfo.sensors) {
-          if (this.roomInfo.sensors[element].key == dataKey) {
+        for (let element in self.roomInfo.sensors) {
+          if (self.roomInfo.sensors[element].key == dataKey) {
             alreadyIn = true;
-            let pos = this.roomInfo.sensors.indexOf(
-              this.roomInfo.sensors[element]
+            let pos = self.roomInfo.sensors.indexOf(
+              self.roomInfo.sensors[element]
             );
-            // this.roomInfo.sensors.splice(pos, 1);
-            this.roomInfo.sensors[pos].value = messageJson.data[dataKey];
+            // self.roomInfo.sensors.splice(pos, 1);
+            self.roomInfo.sensors[pos].value = messageJson.data[dataKey];
             break;
           }
         }
         if (!alreadyIn) {
-          this.roomInfo.sensors.push(obj);
+          self.roomInfo.sensors.push(obj);
         }
       }
     });

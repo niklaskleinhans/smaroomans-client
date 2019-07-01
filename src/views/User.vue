@@ -116,11 +116,13 @@ export default {
     }
 
     this.$mqtt.subscribe("client/notifications");
+    var self = this;
     this.$mqtt.on("message", (topic, message) => {
       console.log("mqtt message: '" + topic + "' received");
       var messageJson = JSON.parse(message);
-      if (messageJson.user == this.currentUser.key) {
-        this.notifications = messageJson.data;
+      console.log(messageJson);
+      if (messageJson.user == self.currentUser.key) {
+        self.notifications = messageJson.data;
       }
     });
 

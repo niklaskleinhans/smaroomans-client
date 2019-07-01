@@ -19,7 +19,6 @@
         item-text="key"
         item-value="workplan"
         prepend-icon="fa-user"
-        auto-select-first
       ></v-combobox>
     </div>
     <v-spacer></v-spacer>
