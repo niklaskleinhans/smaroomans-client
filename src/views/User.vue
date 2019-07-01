@@ -1,14 +1,14 @@
 <template>
-  <v-container>
-    <HelloWorld />
-    <v-layout>
-      <v-flex>
+  <v-container fluid>
+    <v-layout row wrap>
+      <v-flex md6>
         <v-card>
-          <v-btn @click="triggerMqtt">trigger</v-btn>
-          <v-btn @click="clickPub">publish</v-btn>
+          <!-- <v-btn @click="triggerMqtt">trigger</v-btn>
+          <v-btn @click="clickPub">publish</v-btn>-->
+          <v-date-picker v-model="dates" color="green" multiple scrollable></v-date-picker>
         </v-card>
       </v-flex>
-      <v-flex>
+      <v-flex md6>
         <v-card>
           <v-card v-for="(noti, index) in notifications" :key="index">{{noti}}</v-card>
         </v-card>
@@ -18,23 +18,22 @@
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from "@/components/HelloWorld.vue";
+import { mapGetters, mapActions } from "vuex";
 
+const debug = process.env.NODE_ENV !== "production";
 const axios = require("axios");
 
 export default {
   name: "User",
-  components: {
-    HelloWorld
-  },
   data() {
     return {
       baseUrl: "http://",
-      notifications: []
+      notifications: [],
+      dates: []
     };
   },
   methods: {
+    ...mapActions(["setCurrentUser"]),
     triggerMqtt: function() {
       axios
         .post(this.baseUrl + "/api/triggernotification")
@@ -51,7 +50,7 @@ export default {
     }
   },
   mounted() {
-    if (process.env.NODE_ENV == "development") {
+    if (debug) {
       this.baseUrl = "http://localhost:5000";
     } else {
       this.baseUrl += location.host;
@@ -59,6 +58,17 @@ export default {
     this.$mqtt.subscribe("notification/thing");
     this.$mqtt.subscribe("param/param/param/test");
     console.log("Mode: " + process.env.NODE_ENV);
+  },
+  computed: {
+    ...mapGetters(["getUsers", "getCurrentUser"]),
+    currentUser: {
+      get() {
+        return this.getCurrentUser;
+      },
+      set(value) {
+        this.setCurrentUser(value);
+      }
+    }
   },
   mqtt: {
     "notification/thing"(val, topic) {
