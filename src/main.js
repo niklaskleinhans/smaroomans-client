@@ -13,8 +13,21 @@ Vue.use(Vuetify, { iconfont: "md" });
 
 Vue.config.productionTip = false;
 
+const debug = process.env.NODE_ENV !== "production";
+var burl = "http://";
+if (debug) {
+  burl = "http://localhost:5000";
+} else {
+  burl += location.host;
+}
+const baseUrl = burl;
+const axios = require("axios");
+
 new Vue({
   router,
   store,
+  axios,
+  debug,
+  baseUrl,
   render: h => h(App)
 }).$mount("#app");
