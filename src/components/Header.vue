@@ -1,5 +1,5 @@
 <template>
-  <v-toolbar>
+  <v-toolbar class="header">
     <v-spacer></v-spacer>
     <v-toolbar-title>Smart Room Management System</v-toolbar-title>
     <v-spacer></v-spacer>
@@ -13,7 +13,14 @@
     </v-toolbar-items>
     <v-spacer></v-spacer>
     <div data-app>
-      <v-combobox v-model="currentUser" :items="getUsers" label="User" prepend-icon="fa-user"></v-combobox>
+      <v-combobox
+        v-model="currentUser"
+        :items="users"
+        item-text="key"
+        item-value="workplan"
+        prepend-icon="fa-user"
+        auto-select-first
+      ></v-combobox>
     </div>
     <v-spacer></v-spacer>
   </v-toolbar>
@@ -21,17 +28,27 @@
 
 <script>
 import { mapGetters, mapActions } from "vuex";
+import axios from "axios";
+import debug from "debug";
 
 export default {
   name: "Header",
   data() {
-    return {};
+    return { baseUrl: "http://" };
   },
   methods: {
-    ...mapActions(["setCurrentUser"])
+    ...mapActions(["setUsers", "setCurrentUser"])
   },
   computed: {
-    ...mapGetters(["getCurrentUser", "getUsers"]),
+    ...mapGetters(["getUsers", "getCurrentUser"]),
+    users: {
+      get() {
+        return this.getUsers;
+      },
+      set(users) {
+        this.setUsers(users);
+      }
+    },
     currentUser: {
       get() {
         return this.getCurrentUser;
@@ -40,6 +57,29 @@ export default {
         this.setCurrentUser(value);
       }
     }
+  },
+  mounted() {
+    if (debug) {
+      this.baseUrl = "http://localhost:5000";
+    } else {
+      this.baseUrl += location.host;
+    }
+
+    axios
+      .get(this.baseUrl + "/api/allusers")
+      .then(res => {
+        console.log(res);
+        this.setUsers(res.data.users);
+      })
+      .catch(err => {
+        console.log(err);
+      });
   }
 };
 </script>
+
+<style>
+.header {
+  z-index: 100;
+}
+</style>
