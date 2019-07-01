@@ -6,7 +6,7 @@
           <v-container fluid grid-list-md>
             <v-layout row wrap>
               <v-flex v-for="(room, index) in rooms" :key="index" d-flex md2>
-                <v-card :color="room.inUse">
+                <v-card :color="room.active ? 'green' : 'red'">
                   <v-card-title>{{ room.key }}</v-card-title>
                   <v-card-actions>
                     <v-btn flat color="info" @click="showInfo(room)">Info</v-btn>
@@ -144,7 +144,7 @@ export default {
       // }
       console.log("mqtt message: '" + topic + "' received");
       var messageJson = JSON.parse(message);
-      console.log(messageJson);
+      // console.log(messageJson);
       // check if message contains data for current displayed room
       if (messageJson.room == this.roomInfo.key) {
         var dataKey = Object.keys(messageJson.data)[0];
