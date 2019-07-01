@@ -9,10 +9,32 @@
 
 <script>
 import Header from "@/components/Header.vue";
+import axios from "axios";
+import debug from "debug";
 
 export default {
   name: "app",
-  components: { Header }
+  components: { Header },
+  mounted() {
+    if (debug) {
+      // axios
+      //   .put("http://localhost:5000/api/initdb")
+      //   .then(res => {
+      //     console.log(res);
+      //     axios
+      //       .put("http://localhost:5000/api/start")
+      //       .then(res => {
+      //         console.log(res);
+      //       })
+      //       .catch(err => {
+      //         console.log(err);
+      //       });
+      //   })
+      //   .catch(err => {
+      //     console.log(err);
+      //   });
+    }
+  }
 };
 </script>
 

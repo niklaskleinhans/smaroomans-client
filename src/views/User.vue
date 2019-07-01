@@ -5,9 +5,10 @@
         <v-card>
           <!-- <v-btn @click="triggerMqtt">trigger</v-btn>
           <v-btn @click="clickPub">publish</v-btn>-->
-          <v-date-picker v-model="dates" color="green" multiple scrollable></v-date-picker>
+          <v-date-picker v-model="dates" color="green" multiple scrollable first-day-of-week="1"></v-date-picker>
         </v-card>
       </v-flex>
+      <v-spacer></v-spacer>
       <v-flex md6>
         <v-card>
           <v-card v-for="(noti, index) in notifications" :key="index">{{noti}}</v-card>
@@ -19,9 +20,9 @@
 
 <script>
 import { mapGetters, mapActions } from "vuex";
-
-const debug = process.env.NODE_ENV !== "production";
-const axios = require("axios");
+import axios from "axios";
+import debug from "debug";
+// import baseUrl from "baseUrl";
 
 export default {
   name: "User",
@@ -55,9 +56,9 @@ export default {
     } else {
       this.baseUrl += location.host;
     }
+    console.log("Mode: " + process.env.NODE_ENV);
     this.$mqtt.subscribe("notification/thing");
     this.$mqtt.subscribe("param/param/param/test");
-    console.log("Mode: " + process.env.NODE_ENV);
   },
   computed: {
     ...mapGetters(["getUsers", "getCurrentUser"]),
