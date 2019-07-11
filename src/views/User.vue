@@ -95,6 +95,9 @@ export default {
     doAction: function(topic, topicdata) {
       this.$mqtt.publish(topic, JSON.stringify(topicdata));
       console.log("published: " + topic + " " + JSON.stringify(topicdata));
+    },
+    function(connack) {
+      console.log("succesfully connected with: ", connack);
     }
   },
   computed: {
