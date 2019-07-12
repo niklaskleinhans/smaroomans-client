@@ -42,6 +42,7 @@
 <script>
 import axios from "axios";
 import debug from "debug";
+import mqtt from "mqtt";
 // import baseUrl from "baseUrl";
 
 export default {
@@ -49,6 +50,8 @@ export default {
   data() {
     return {
       baseUrl: "http://",
+      client: {},
+      mqtt: require("mqtt"),
       roomInfo: { key: null, maxStaff: null, sensors: [] },
       rooms: {},
       headers: [
@@ -68,7 +71,7 @@ export default {
 
       // remove current subscriptions
       for (let subscription in this.subscriptions) {
-        this.$mqtt.unsubscribe(this.subscriptions[subscription]);
+        this.client.unsubscribe(this.subscriptions[subscription]);
       }
       this.subscriptions = [];
       // subscribe to new topics, where data of the sensors in the current room are published
@@ -83,7 +86,7 @@ export default {
               sensors[sensor].sensortopic != null &&
               !this.subscriptions.includes(sensors[sensor].sensortopic)
             ) {
-              this.$mqtt.subscribe(sensors[sensor].sensortopic);
+              this.client.subscribe(sensors[sensor].sensortopic);
               this.subscriptions.push(sensors[sensor].sensortopic);
             }
           }
@@ -106,44 +109,21 @@ export default {
         console.log("GET request: /api/allrooms/ success");
         console.log(res);
         this.rooms = res.data.rooms;
-
-        // for (let room in this.rooms) {
-        //   axios
-        //     .get(this.baseUrl + "/api/roomsensors/" + this.rooms[room].key)
-        //     .then(res => {
-        //       console.log("/api/roomsensors/" + this.rooms[room].key);
-        //       console.log(res.data);
-        //       for (let sensor in res.data.sensors) {
-        //         if (
-        //           res.data.sensors[sensor].sensortopic != null &&
-        //           !this.subscriptions.includes(
-        //             res.data.sensors[sensor].sensortopic
-        //           )
-        //         ) {
-        //           this.$mqtt.subscribe(res.data.sensors[sensor].sensortopic);
-        //           this.subscriptions.push(res.data.sensors[sensor].sensortopic);
-        //           // console.log(this.$mqtt);
-        //         }
-        //       }
-        //     })
-        //     .catch(err => {
-        //       console.log(err);
-        //     });
-        // }
       })
       .catch(err => {
         console.log(err);
       });
 
+    // mqtt.js
+    this.client = mqtt.connect("mqtt://192.168.0.230:1884");
+    this.client.on("connect", () => {
+      console.log("User - succesfully connected mqtt");
+    });
+
     var self = this;
-    this.$mqtt.on("message", (topic, message) => {
-      // var room = topic.split("/")[1];
-      // var sensor = topic.split("/")[2];
-      // for (let data in message) {
-      // }
+    this.client.on("message", (topic, message) => {
       console.log("mqtt message: '" + topic + "' received");
       var messageJson = JSON.parse(message);
-      // console.log(messageJson);
       // check if message contains data for current displayed room
       if (messageJson.room == self.roomInfo.key) {
         var dataKey = Object.keys(messageJson.data)[0];
@@ -156,7 +136,6 @@ export default {
             let pos = self.roomInfo.sensors.indexOf(
               self.roomInfo.sensors[element]
             );
-            // self.roomInfo.sensors.splice(pos, 1);
             self.roomInfo.sensors[pos].value = messageJson.data[dataKey];
             break;
           }
@@ -166,12 +145,12 @@ export default {
         }
       }
     });
-  },
-  mqtt: {
-    // allTopics(res, topic) {
-    //   console.log(res);
-    //   console.log(topic);
-    // }
   }
+  // mqtt: {
+  // allTopics(res, topic) {
+  //   console.log(res);
+  //   console.log(topic);
+  // }
+  // }
 };
 </script>

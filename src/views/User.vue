@@ -4,8 +4,6 @@
       <v-flex md6>
         <v-card>
           <v-card-title primary-title>Home Office Planner</v-card-title>
-          <!-- <v-btn @click="triggerMqtt">trigger</v-btn> -->
-          <!-- <v-btn @click="clickPub">publish</v-btn> -->
           <v-date-picker
             v-model="currentUser.workplan"
             color="green"
@@ -42,6 +40,7 @@
 import { mapGetters, mapActions } from "vuex";
 import axios from "axios";
 import debug from "debug";
+import mqtt from "mqtt";
 // import baseUrl from "baseUrl";
 
 export default {
@@ -49,39 +48,14 @@ export default {
   data() {
     return {
       baseUrl: "http://",
-      notifications: [
-        // {
-        //   text: "Open window",
-        //   topic: "plugwise2py/cmd/switch/000D6F0004B1E6C4",
-        //   topicdata: { val: "off" }
-        // }
-        // {
-        //   text: "Turn light on",
-        //   topic: "actuator/light",
-        //   topicdata: { val: "on" }
-        // }
-      ],
+      client: {},
+      mqtt: require("mqtt"),
+      notifications: [],
       dates: []
     };
   },
   methods: {
     ...mapActions(["setCurrentUser"]),
-    // mqtt test functions for buttons on top
-    // triggerMqtt: function() {
-    //   axios
-    //     .post(this.baseUrl + "/api/triggernotification")
-    //     .then(res => {
-    //       console.log("triggered request");
-    //       console.log(res);
-    //     })
-    //     .catch(err => {
-    //       console.log(err);
-    //     });
-    // },
-    // clickPub: function() {
-    //   var topic = "client/notifications";
-    //   this.$mqtt.publish(topic, "message");
-    // },
     saveUserPlan: function(plan) {
       axios
         .put(this.baseUrl + "/api/setuserplan", plan)
@@ -93,11 +67,8 @@ export default {
         });
     },
     doAction: function(topic, topicdata) {
-      this.$mqtt.publish(topic, JSON.stringify(topicdata));
+      this.client.publish(topic, JSON.stringify(topicdata));
       console.log("published: " + topic + " " + JSON.stringify(topicdata));
-    },
-    function(connack) {
-      console.log("succesfully connected with: ", connack);
     }
   },
   computed: {
@@ -118,35 +89,55 @@ export default {
       this.baseUrl += location.host;
     }
 
-    this.$mqtt.subscribe("client/notifications");
+    // mqtt.js
+    this.client = mqtt.connect("mqtt://192.168.0.230:1884");
+    this.client.on("connect", () => {
+      console.log("User - succesfully connected mqtt");
+      this.client.subscribe("client/notifications");
+    });
+
     var self = this;
-    this.$mqtt.on("message", (topic, message) => {
-      console.log("mqtt message: '" + topic + "' received");
+    this.client.on("message", (topic, message) => {
+      // console.log("User: mqtt message: '" + topic + "' received");
       var messageJson = JSON.parse(message);
-      console.log(messageJson);
-      if (messageJson.user == self.currentUser.key) {
-        self.notifications = messageJson.data;
+      // console.log(messageJson);
+      if (self.currentUser != undefined) {
+        if (messageJson.user == self.currentUser.key) {
+          self.notifications = messageJson.data;
+        }
       }
     });
 
-    // console.log("Mode: " + process.env.NODE_ENV);
-    // this.$mqtt.subscribe("notification/thing");
-    // this.$mqtt.subscribe("param/param/param/test");
+    // vue-mqtt
+    // this.$mqtt.subscribe("client/notifications");
+    // var self = this;
+    // this.$mqtt.on("message", (topic, message) => {
+    //   console.log("mqtt message: '" + topic + "' received");
+    //   var messageJson = JSON.parse(message);
+    //   console.log(messageJson);
+    //   if (messageJson.user == self.currentUser.key) {
+    //     self.notifications = messageJson.data;
+    //   }
+    // });
   },
   beforeDestroy() {
     console.log("destroying now!");
-    this.$mqtt.unsubscribe("client/notifications");
+    this.client.unsubscribe("client/notifications");
+    // this.$mqtt.unsubscribe("client/notifications");
     this.notifications = [];
-  },
-  mqtt: {
-    // "notification/thing"(val, topic) {
-    //   this.notifications.push("notification: " + val);
-    //   this.notifications.push("notification: " + topic);
-    //   console.log(this.notifiactions);
-    // },
-    // "param/param/param/test"(data, topic) {
-    //   console.log("notification: " + topic + " " + data);
-    // }
   }
+  // mqtt: {
+  //   connect(connack) {
+  //     console.log("succesfully connected with: ", connack);
+  //   }
+  //   // "notification/thing"(val, topic) {
+  //   //   this.notifications.push("notification: " + val);
+  //   //   this.notifications.push("notification: " + topic);
+  //   //   console.log(this.notifiactions);
+  //   // },
+  //   // "param/param/param/test"(data, topic) {
+  //   //   console.log("notification: " + topic + " " + data);
+  //   // }
+  // }
 };
 </script>

@@ -4,11 +4,13 @@ import router from "./router";
 import store from "./store/store";
 import Vuetify from "vuetify";
 import "vuetify/dist/vuetify.min.css";
-import VueMqtt from "vue-mqtt";
 import "@fortawesome/fontawesome-free/css/all.css";
 import "material-design-icons-iconfont/dist/material-design-icons.css";
+// import VueMqtt from "vue-mqtt";
+import mqtt from "mqtt";
 
-Vue.use(VueMqtt, "ws://192.168.0.230:1884", {});
+Vue.prototype.$mqtt = mqtt;
+// Vue.use(VueMqtt, "mqtt://192.168.0.230:1884", {});
 Vue.use(Vuetify, { iconfont: "md" });
 
 Vue.config.productionTip = false;
@@ -29,5 +31,6 @@ new Vue({
   axios,
   debug,
   baseUrl,
+  mqtt,
   render: h => h(App)
 }).$mount("#app");
