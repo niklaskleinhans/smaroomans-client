@@ -22,6 +22,12 @@
       ></v-combobox>
     </div>
     <v-spacer></v-spacer>
+    <v-menu v-model="menu" :close-on-content-click="false" full-width max-width="290">
+      <template v-slot:activator="{on}">
+        <v-text-field :value="computedDateFormatted" readonly v-on="on"></v-text-field>
+      </template>
+      <v-date-picker v-model="date" @change="menu = false"></v-date-picker>
+    </v-menu>
   </v-toolbar>
 </template>
 
@@ -29,17 +35,19 @@
 import { mapGetters, mapActions } from "vuex";
 import axios from "axios";
 import debug from "debug";
+import moment from "moment";
 
 export default {
   name: "Header",
-  data() {
-    return { baseUrl: "http://" };
-  },
+  data: () => ({
+    baseUrl: "http://",
+    menu: false
+  }),
   methods: {
-    ...mapActions(["setUsers", "setCurrentUser"])
+    ...mapActions(["setUsers", "setCurrentUser", "setDate"])
   },
   computed: {
-    ...mapGetters(["getUsers", "getCurrentUser"]),
+    ...mapGetters(["getUsers", "getCurrentUser", "getDate"]),
     users: {
       get() {
         return this.getUsers;
@@ -55,6 +63,17 @@ export default {
       set(value) {
         this.setCurrentUser(value);
       }
+    },
+    date: {
+      get() {
+        return this.getDate;
+      },
+      set(value) {
+        this.setDate(value);
+      }
+    },
+    computedDateFormatted() {
+      return this.date ? moment(this.date).format("dddd, MMMM Do YYYY") : "";
     }
   },
   mounted() {

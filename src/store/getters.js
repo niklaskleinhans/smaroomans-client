@@ -4,5 +4,8 @@ export default {
   },
   getCurrentUser: state => {
     return state.currentUser;
+  },
+  getDate: state => {
+    return state.date;
   }
 };
