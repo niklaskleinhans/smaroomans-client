@@ -26,7 +26,12 @@
       <template v-slot:activator="{on}">
         <v-text-field :value="computedDateFormatted" readonly v-on="on"></v-text-field>
       </template>
-      <v-date-picker color="blue" v-model="date" @change="menu = false; updateDate()"></v-date-picker>
+      <v-date-picker
+        color="blue"
+        v-model="date"
+        first-day-of-week="1"
+        @change="menu = false; updateDate()"
+      ></v-date-picker>
     </v-menu>
   </v-toolbar>
 </template>
