@@ -16,6 +16,28 @@
             </v-layout>
           </v-container>
         </v-card>
+
+        <v-card v-if="rooms">
+          <v-data-table
+            :headers="headersRoomUsers"
+            :items="rooms"
+            rows-per-page-text="10"
+            hide-actions
+            disable-initial-sort
+          >
+            <template v-slot:items="props">
+              <td>{{ props.item.key }}</td>
+              <td>
+                <v-card
+                  hover
+                  style="margin:10px; max-width: 100px"
+                  v-for="(user, index) in props.item.users"
+                  :key="index"
+                >{{ user }}</v-card>
+              </td>
+            </template>
+          </v-data-table>
+        </v-card>
       </v-flex>
       <v-spacer></v-spacer>
       <v-flex md6>
@@ -23,7 +45,7 @@
           <v-card-title primary-title>{{ roomInfo.room }}</v-card-title>
           maxStaff: {{ roomInfo.maxStaff }}
           <v-data-table
-            :headers="headers"
+            :headers="headersSensors"
             :items="roomInfo.sensors"
             rows-per-page-text="25"
             hide-actions
@@ -54,12 +76,16 @@ export default {
       client: {},
       mqtt: require("mqtt"),
       roomInfo: { room: null, maxStaff: null, sensors: [] },
-      rooms: {},
-      headers: [
+      rooms: null,
+      headersSensors: [
         { text: "name", align: "left", value: "key" },
         { text: "value", align: "left", sortable: false, value: "key" }
       ],
-      subscriptions: []
+      subscriptions: [],
+      headersRoomUsers: [
+        { text: "room", align: "left", value: "key" },
+        { text: "workers", align: "left", sortable: false, value: "key" }
+      ]
     };
   },
   methods: {
