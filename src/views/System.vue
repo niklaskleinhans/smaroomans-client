@@ -40,6 +40,7 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 import axios from "axios";
 import debug from "debug";
 import mqtt from "mqtt";
@@ -111,7 +112,7 @@ export default {
         this.rooms = res.data.rooms;
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
       });
 
     // mqtt.js
@@ -138,9 +139,7 @@ export default {
             let pos = self.roomInfo.sensors.indexOf(
               self.roomInfo.sensors[element]
             );
-            // var dataKey = Object.keys(messageJson.data)[0];
-            // self.roomInfo.sensors[pos].data[dataKey] =
-            //   messageJson.data[dataKey];
+            // replace set value with new value
             self.roomInfo.sensors.splice(pos, 1);
             self.roomInfo.sensors.push(messageJson);
             break;
@@ -151,6 +150,30 @@ export default {
         }
       }
     });
+  },
+  computed: {
+    ...mapGetters(["getDate"]),
+    date: {
+      get() {
+        return this.getDate;
+      }
+    }
+  },
+  watch: {
+    // if date changes get new room assignments for that date
+    date: function() {
+      axios
+        .get(this.baseUrl + "/api/allrooms")
+        .then(res => {
+          console.log("new date");
+          console.log("GET request: /api/allrooms/ success");
+          console.log(res);
+          this.rooms = res.data.rooms;
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    }
   }
 };
 </script>

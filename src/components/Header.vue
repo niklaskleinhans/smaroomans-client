@@ -26,7 +26,7 @@
       <template v-slot:activator="{on}">
         <v-text-field :value="computedDateFormatted" readonly v-on="on"></v-text-field>
       </template>
-      <v-date-picker v-model="date" @change="menu = false"></v-date-picker>
+      <v-date-picker color="blue" v-model="date" @change="menu = false; updateDate()"></v-date-picker>
     </v-menu>
   </v-toolbar>
 </template>
@@ -44,7 +44,17 @@ export default {
     menu: false
   }),
   methods: {
-    ...mapActions(["setUsers", "setCurrentUser", "setDate"])
+    ...mapActions(["setUsers", "setCurrentUser", "setDate"]),
+    updateDate() {
+      axios
+        .put(this.baseUrl + "/api/updatedate", { date: this.getDate })
+        .then(res => {
+          console.log("SmaRooManS Header: /api/updatedate ", res);
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    }
   },
   computed: {
     ...mapGetters(["getUsers", "getCurrentUser", "getDate"]),
@@ -90,7 +100,7 @@ export default {
         this.setUsers(res.data.users);
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
       });
   }
 };
