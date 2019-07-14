@@ -98,27 +98,15 @@ export default {
 
     var self = this;
     this.client.on("message", (topic, message) => {
-      // console.log("User: mqtt message: '" + topic + "' received");
+      // console.log("User: mqtt message: '" + topic + "' received"); // log
       var messageJson = JSON.parse(message);
-      // console.log(messageJson);
+      // console.log(messageJson);  // log
       if (self.currentUser != undefined) {
         if (messageJson.user == self.currentUser.key) {
           self.notifications = messageJson.data;
         }
       }
     });
-
-    // vue-mqtt
-    // this.$mqtt.subscribe("client/notifications");
-    // var self = this;
-    // this.$mqtt.on("message", (topic, message) => {
-    //   console.log("mqtt message: '" + topic + "' received");
-    //   var messageJson = JSON.parse(message);
-    //   console.log(messageJson);
-    //   if (messageJson.user == self.currentUser.key) {
-    //     self.notifications = messageJson.data;
-    //   }
-    // });
   },
   beforeDestroy() {
     console.log("destroying now!");
@@ -126,18 +114,5 @@ export default {
     // this.$mqtt.unsubscribe("client/notifications");
     this.notifications = [];
   }
-  // mqtt: {
-  //   connect(connack) {
-  //     console.log("succesfully connected with: ", connack);
-  //   }
-  //   // "notification/thing"(val, topic) {
-  //   //   this.notifications.push("notification: " + val);
-  //   //   this.notifications.push("notification: " + topic);
-  //   //   console.log(this.notifiactions);
-  //   // },
-  //   // "param/param/param/test"(data, topic) {
-  //   //   console.log("notification: " + topic + " " + data);
-  //   // }
-  // }
 };
 </script>

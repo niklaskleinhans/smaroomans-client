@@ -4,5 +4,8 @@ export default {
   },
   setUsers({ commit }, users) {
     commit("SET_USERS", users);
+  },
+  setDate({ commit }, value) {
+    commit("SET_DATE", value);
   }
 };

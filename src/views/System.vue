@@ -19,9 +19,9 @@
       </v-flex>
       <v-spacer></v-spacer>
       <v-flex md6>
-        <v-card v-if="roomInfo.key">
-          <v-card-title primary-title>{{roomInfo.key}}</v-card-title>
-          maxStaff: {{roomInfo.maxStaff}}
+        <v-card v-if="roomInfo.room">
+          <v-card-title primary-title>{{ roomInfo.room }}</v-card-title>
+          maxStaff: {{ roomInfo.maxStaff }}
           <v-data-table
             :headers="headers"
             :items="roomInfo.sensors"
@@ -29,8 +29,8 @@
             hide-actions
           >
             <template v-slot:items="props">
-              <td>{{props.item.key}}</td>
-              <td>{{props.item.value}}</td>
+              <td>{{ props.item.sensortype }}</td>
+              <td>{{ props.item.data[Object.keys(props.item.data)[0]] }}</td>
             </template>
           </v-data-table>
         </v-card>
@@ -40,6 +40,7 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 import axios from "axios";
 import debug from "debug";
 import mqtt from "mqtt";
@@ -52,7 +53,7 @@ export default {
       baseUrl: "http://",
       client: {},
       mqtt: require("mqtt"),
-      roomInfo: { key: null, maxStaff: null, sensors: [] },
+      roomInfo: { room: null, maxStaff: null, sensors: [] },
       rooms: {},
       headers: [
         { text: "name", align: "left", value: "key" },
@@ -66,7 +67,7 @@ export default {
       // empty sensorlist
       this.roomInfo.sensors = [];
       // fill data
-      this.roomInfo.key = room.key;
+      this.roomInfo.room = room.key;
       this.roomInfo.maxStaff = room.maxStaff;
 
       // remove current subscriptions
@@ -111,7 +112,7 @@ export default {
         this.rooms = res.data.rooms;
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
       });
 
     // mqtt.js
@@ -125,32 +126,54 @@ export default {
       console.log("mqtt message: '" + topic + "' received");
       var messageJson = JSON.parse(message);
       // check if message contains data for current displayed room
-      if (messageJson.room == self.roomInfo.key) {
-        var dataKey = Object.keys(messageJson.data)[0];
-        var obj = { key: dataKey, value: messageJson.data[dataKey] };
+      if (
+        messageJson.room != null &&
+        messageJson.room == self.roomInfo.room &&
+        messageJson.sensortype != null
+      ) {
         // delete element from array if there is an older version in there
         var alreadyIn = false;
         for (let element in self.roomInfo.sensors) {
-          if (self.roomInfo.sensors[element].key == dataKey) {
+          if (self.roomInfo.sensors[element].key == messageJson.key) {
             alreadyIn = true;
             let pos = self.roomInfo.sensors.indexOf(
               self.roomInfo.sensors[element]
             );
-            self.roomInfo.sensors[pos].value = messageJson.data[dataKey];
+            // replace set value with new value
+            self.roomInfo.sensors.splice(pos, 1);
+            self.roomInfo.sensors.push(messageJson);
             break;
           }
         }
         if (!alreadyIn) {
-          self.roomInfo.sensors.push(obj);
+          self.roomInfo.sensors.push(messageJson);
         }
       }
     });
+  },
+  computed: {
+    ...mapGetters(["getDate"]),
+    date: {
+      get() {
+        return this.getDate;
+      }
+    }
+  },
+  watch: {
+    // if date changes get new room assignments for that date
+    date: function() {
+      axios
+        .get(this.baseUrl + "/api/allrooms")
+        .then(res => {
+          console.log("new date");
+          console.log("GET request: /api/allrooms/ success");
+          console.log(res);
+          this.rooms = res.data.rooms;
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    }
   }
-  // mqtt: {
-  // allTopics(res, topic) {
-  //   console.log(res);
-  //   console.log(topic);
-  // }
-  // }
 };
 </script>
